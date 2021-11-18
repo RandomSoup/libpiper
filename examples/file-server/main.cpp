@@ -27,7 +27,7 @@ static int _ends_with(const char *suf, const char *str) {
     size_t str_len = strlen(str);
     return str_len >= suf_len && !strcmp(str + str_len - suf_len, suf);
 }
-static void callback(piper_request *request, int sock) {
+static int callback(piper_request *request, int sock) {
     // Log
     printf("Serving: %s\n", request->path);
 
@@ -128,6 +128,9 @@ static void callback(piper_request *request, int sock) {
     // Free
  free:
     free(full_path);
+
+    // Return
+    return 0;
 }
 
 // Main

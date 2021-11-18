@@ -94,6 +94,7 @@ int piper_server_run(int port, int max_connections, piper_response_callback_t ca
 
     // Bind Socket
     struct sockaddr_in6 server_addr;
+    bzero(&server_addr, sizeof (server_addr));
     server_addr.sin6_family = AF_INET6;
     server_addr.sin6_port = htons(port);
     server_addr.sin6_addr = in6addr_any;
@@ -114,6 +115,7 @@ int piper_server_run(int port, int max_connections, piper_response_callback_t ca
 
     // Loop
     struct sockaddr_in6 client_addr;
+    bzero(&client_addr, sizeof (client_addr));
     socklen_t client_addr_length = sizeof (client_addr);
     int client_sock;
     while ((client_sock = accept(server_sock, &client_addr, &client_addr_length)) >= 0) {
@@ -141,13 +143,18 @@ int piper_server_run(int port, int max_connections, piper_response_callback_t ca
         request->path[request->path_length] = '\0';
 
         // Callback
-        (*callback)(request, client_sock);
+        int callback_ret = (*callback)(request, client_sock);
 
         // Cleanup
  free_request:
         free(request);
  close_client_socket:
         close(client_sock);
+
+        // Exit If Needed
+        if (callback_ret != 0) {
+            break;
+        }
     }
 
     // Cleanup

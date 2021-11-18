@@ -13,7 +13,7 @@ static void internal_error(int sock) {
 }
 
 // Callback
-static void callback(piper_request *request, int sock) {
+static int callback(piper_request *request, int sock) {
     // Log
     printf("New Connection: %s\n", request->path);
     // Choose Behavior
@@ -22,12 +22,20 @@ static void callback(piper_request *request, int sock) {
         if (piper_server_respond_str(sock, REDIRECT, "/hello") != 0) {
             internal_error(sock);
         }
+    } else if (strcmp("/shutdown", request->path) == 0) {
+        // Shutdown Server
+        if (piper_server_respond_str(sock, UTF8_TEXT, "Goodbye.") != 0) {
+            internal_error(sock);
+        }
+        return 1;
     } else {
         // Everything Else
         if (piper_server_respond_str(sock, UTF8_TEXT, "Hello From \"%s\"!", request->path) != 0) {
             internal_error(sock);
         }
     }
+    // Return
+    return 0;
 }
 
 // Main
