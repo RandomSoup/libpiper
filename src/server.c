@@ -145,6 +145,7 @@ int piper_server_run(int port, int max_connections, piper_response_callback_t ca
         if (request->path[0] != '/') {
             memcpy(&request->path[1], (void *) request->path, request->path_length + 1 /* NULL-Terminator */);
             request->path[0] = '/';
+            request->path_length++;
         }
 
         // Callback
