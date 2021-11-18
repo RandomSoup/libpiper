@@ -20,7 +20,7 @@ int piper_server_respond(int sock, piper_response *response) {
         // Failed
         return 1;
     }
-    if (_safe_write(sock, &response->content, response->content_length) != 0) {
+    if (_safe_write(sock, (void *) response->content, response->content_length) != 0) {
         // Failed
         return 1;
     }
@@ -128,7 +128,7 @@ int piper_server_run(int port, int max_connections, piper_response_callback_t ca
         path_length = le16toh(path_length);
 
         // Allocate Request
-        piper_request *request = malloc(sizeof (piper_request) + path_length + 1);
+        piper_request *request = malloc(sizeof (piper_request) + path_length + 1 /* NULL-Terminator */ + 1 /* Extra Preceding '/' If Needed */);
         if (request == NULL) {
             // Out Of Memory
             goto free_request;
@@ -136,11 +136,16 @@ int piper_server_run(int port, int max_connections, piper_response_callback_t ca
         request->path_length = path_length;
 
         // Read URI
-        if (_safe_read(client_sock, &request->path, request->path_length) != 0) {
+        if (_safe_read(client_sock, (void *) request->path, request->path_length) != 0) {
             // Bad Connection
             goto free_request;
         }
         request->path[request->path_length] = '\0';
+        // Add Extra Preceding '/' If Needed
+        if (request->path[0] != '/') {
+            memcpy(&request->path[1], (void *) request->path, request->path_length + 1 /* NULL-Terminator */);
+            request->path[0] = '/';
+        }
 
         // Callback
         int callback_ret = (*callback)(request, client_sock);
