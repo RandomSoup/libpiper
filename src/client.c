@@ -22,8 +22,8 @@ static void _send_empty(uint8_t type, piper_response_callback_t callback) {
 static void _handle_redirects(piper_url url, piper_response *response, piper_response_callback_t callback) {
     // Redirect
     piper_url new_url;
-    // Relativize
-    if (piper_relativize_url(url, response->content, &new_url) == 0) {
+    // Resolve
+    if (piper_resolve_relative_url(url, response->content, &new_url) == 0) {
         // Respond
         piper_client_send(new_url, 1, callback);
         // Free
