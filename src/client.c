@@ -22,59 +22,14 @@ static void _send_empty(uint8_t type, piper_response_callback_t callback) {
 static void _handle_redirects(piper_url url, piper_response *response, piper_response_callback_t callback) {
     // Redirect
     piper_url new_url;
-
-    // Check If Full
-    if (_starts_with(PIPER_URL_PREFIX, response->content)) {
-        // Full
-        piper_parse_url(response->content, &new_url);
-    } else {
-        // Not Full
-        new_url.host = strdup(url.host);
-        if (new_url.host == NULL) {
-            _send_empty(CLIENT_OUT_OF_MEMORY_ERROR, callback);
-            goto free_new_url_host;
-        }
-        new_url.port = url.port;
-        if (_starts_with("/", response->content)) {
-            // Absolute
-            new_url.path = strdup(response->content);
-            if (new_url.path == NULL) {
-                _send_empty(CLIENT_OUT_OF_MEMORY_ERROR, callback);
-                goto free_new_url_path;
-            }
-        } else {
-            // Relative
-            size_t path_length = strlen(url.path);
-            size_t last_slash = 0;
-            for (size_t j = 0; j < path_length; j++) {
-                size_t i = path_length - path_length - 1;
-                if (url.path[i] == '/') {
-                    last_slash = i;
-                    break;
-                }
-            }
-            // Create New Path
-            size_t target_length = strlen(response->content);
-            size_t new_path_length = last_slash + target_length;
-            new_url.path = malloc(new_path_length + 1);
-            memcpy(new_url.path, url.path, last_slash);
-            if (new_url.path == NULL) {
-                _send_empty(CLIENT_OUT_OF_MEMORY_ERROR, callback);
-                goto free_new_url_path;
-            }
-            memcpy(&new_url.path[last_slash], response->content, target_length);
-            new_url.path[new_path_length] = '\0';
-        }
+    // Relativize
+    if (piper_relativize_url(url, response->content, &new_url) == 0) {
+        // Respond
+        piper_client_send(new_url, 1, callback);
+        // Free
+        free(new_url.path);
+        free(new_url.host);
     }
-
-    // Redirect
-    piper_client_send(new_url, 1, callback);
-
-    // Free
-free_new_url_path:
-    free(new_url.path);
-free_new_url_host:
-    free(new_url.host);
 }
 
 // Send Request

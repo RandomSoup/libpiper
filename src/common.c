@@ -129,3 +129,61 @@ int piper_parse_url(const char *url, piper_url *out) {
     // Return
     return ret;
 }
+
+// Relativize URL
+int piper_relativize_url(piper_url old_url, const char *path, piper_url *new_url) {
+    // Zero
+    new_url->host = NULL;
+    new_url->path = NULL;
+
+    // Check If Full
+    if (_starts_with(PIPER_URL_PREFIX, path)) {
+        // Full URL
+        piper_parse_url(path, new_url);
+    } else {
+        // Not Full URL
+        new_url->host = strdup(old_url.host);
+        if (new_url->host == NULL) {
+            goto fail;
+        }
+        new_url->port = old_url.port;
+        // Get Path
+        if (_starts_with("/", path)) {
+            // Absolute
+            new_url->path = strdup(path);
+            if (new_url->path == NULL) {
+                goto fail;
+            }
+        } else {
+            // Relative
+            size_t path_length = strlen(old_url.path);
+            size_t last_slash = 0;
+            for (size_t j = 0; j < path_length; j++) {
+                size_t i = path_length - path_length - 1;
+                if (old_url.path[i] == '/') {
+                    last_slash = i;
+                    break;
+                }
+            }
+            // Create New Path
+            size_t target_length = strlen(path);
+            size_t new_path_length = last_slash + target_length;
+            new_url->path = malloc(new_path_length + 1);
+            memcpy(new_url->path, old_url.path, last_slash);
+            if (new_url->path == NULL) {
+                goto fail;
+            }
+            memcpy(&new_url->path[last_slash], path, target_length);
+            new_url->path[new_path_length] = '\0';
+        }
+    }
+
+    // Success
+    return 0;
+
+    // Fail
+ fail:
+    free(new_url->path);
+    free(new_url->host);
+    return 1;
+}

@@ -33,7 +33,6 @@ static void callback(piper_request *request, int sock) {
 
     // Resolve
     char *full_path = NULL;
-    char *short_path = NULL;
     {
         // Make Path
         std::string path;
@@ -46,9 +45,6 @@ static void callback(piper_request *request, int sock) {
         // Check
         if (cwd == NULL || full_path == NULL || !_starts_with(cwd, full_path)) {
             full_path = NULL;
-        }
-        if (full_path != NULL) {
-            short_path = &full_path[strlen(cwd)];
         }
         // Free CWD
         free(cwd);
@@ -72,6 +68,13 @@ static void callback(piper_request *request, int sock) {
         is_dir = stat(full_path, &st) == 0 && S_ISDIR(st.st_mode);
     }
     if (is_dir) {
+        // Force Directory Paths To End With '/'
+        if (!_ends_with("/", request->path)) {
+            // Redirect
+            piper_server_respond_str(sock, REDIRECT, "%s/", request->path);
+            goto free;
+        }
+
         // Directory Listing
         std::string page = "## Directory Listing";
         // List Files
@@ -80,8 +83,6 @@ static void callback(piper_request *request, int sock) {
             struct dirent *entry;
             while ((entry = readdir(dir)) != NULL) {
                 page += "\n=> ";
-                page += short_path;
-                page += '/';
                 page += entry->d_name;
                 if (entry->d_type == DT_DIR) {
                     page += '/';
