@@ -5,7 +5,7 @@
 
 // Callback
 static void callback(piper_response *response) {
-    printf("Content Type: %#02x\n", response->content_type);
+    printf("Content Type: %s (%#02x)\n", piper_content_type_to_string(response->content_type), response->content_type);
     switch (response->content_type) {
         case UTF8_TEXT:
         case UTF8_GEMTEXT:

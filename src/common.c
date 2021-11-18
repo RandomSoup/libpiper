@@ -6,6 +6,21 @@
 
 #include <libpiper/common.h>
 
+// Convert Content Type To String
+#define DEFINE_PIPER_CONTENT_TYPE(name, value) \
+    case value: { \
+        return #name; \
+    }
+const char *piper_content_type_to_string(uint8_t content_type) {
+    switch (content_type) {
+        DEFINE_ALL_PIPER_CONTENT_TYPES()
+        default: {
+            return "UNKNOWN";
+        }
+    }
+}
+#undef DEFINE_PIPER_CONTENT_TYPE
+
 // Socket Utility
 int _safe_read(int sock, void *buf, size_t len) {
     // Read
