@@ -7,5 +7,5 @@ A simple C library implementing v0.7.0 of the [Piper](https://github.com/Luminos
 
 ## Features
 * Simple API
-* 100% IPv6 Support
+* Full IPv6 Support
 * [Multiple Examples](examples)
