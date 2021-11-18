@@ -94,11 +94,11 @@ int piper_server_run(int port, int max_connections, piper_response_callback_t ca
 
     // Bind Socket
     struct sockaddr_in6 server_addr;
-    bzero(&server_addr, sizeof (server_addr));
+    memset(&server_addr, 0, sizeof (server_addr));
     server_addr.sin6_family = AF_INET6;
     server_addr.sin6_port = htons(port);
     server_addr.sin6_addr = in6addr_any;
-    if (bind(server_sock, &server_addr, sizeof (server_addr)) != 0) {
+    if (bind(server_sock, (struct sockaddr *) &server_addr, sizeof (server_addr)) != 0) {
         // Failed
         ERR("%s", "Failed To Bind");
         ret = 1;
@@ -115,10 +115,10 @@ int piper_server_run(int port, int max_connections, piper_response_callback_t ca
 
     // Loop
     struct sockaddr_in6 client_addr;
-    bzero(&client_addr, sizeof (client_addr));
+    memset(&client_addr, 0, sizeof (client_addr));
     socklen_t client_addr_length = sizeof (client_addr);
     int client_sock;
-    while ((client_sock = accept(server_sock, &client_addr, &client_addr_length)) >= 0) {
+    while ((client_sock = accept(server_sock, (struct sockaddr *) &client_addr, &client_addr_length)) >= 0) {
         // Read URI Length
         uint16_t path_length;
         if (_safe_read(client_sock, &path_length, sizeof (path_length)) != 0) {
