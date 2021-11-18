@@ -143,7 +143,11 @@ int piper_server_run(int port, int max_connections, piper_response_callback_t ca
         request->path[request->path_length] = '\0';
         // Add Extra Preceding '/' If Needed
         if (request->path[0] != '/') {
-            memcpy(&request->path[1], (void *) request->path, request->path_length + 1 /* NULL-Terminator */);
+            uint8_t full_path_length = request->path_length + 1 /* NULL-Terminator */;
+            for (uint8_t j = 0; j < full_path_length; j++) {
+                uint8_t i = full_path_length - j - 1;
+                request->path[i + 1] = request->path[i];
+            }
             request->path[0] = '/';
             request->path_length++;
         }
