@@ -149,8 +149,8 @@ int piper_parse_url(const char *url, piper_url *out) {
     return ret;
 }
 
-// Resolve Relative URL
-int piper_resolve_relative_url(piper_url old_url, const char *path, piper_url *new_url) {
+// Resolve Maybe-Relative URL
+int piper_resolve_url(piper_url old_url, const char *path, piper_url *new_url) {
     // Zero
     new_url->host = NULL;
     new_url->path = NULL;

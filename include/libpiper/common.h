@@ -60,7 +60,7 @@ const char *piper_content_type_to_string(uint8_t content_type);
 
 // NOTE: out->host And out->path Must Be Freed With free()
 int piper_parse_url(const char *url, piper_url *out);
-int piper_resolve_relative_url(piper_url old_url, const char *path, piper_url *new_url);
+int piper_resolve_url(piper_url old_url, const char *path, piper_url *new_url);
 
 // Internal
 #ifdef PIPER_INTERNAL
