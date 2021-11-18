@@ -70,8 +70,27 @@ free_response_str:
 
 // Run Server
 int piper_server_run(int port, int max_connections, piper_response_callback_t callback) {
+    // Store Return Value
+    int ret = 0;
+
     // Open Socket
-    int server_sock = socket(AF_INET6, SOCK_STREAM, 0);
+    int server_sock = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
+    if (server_sock == -1) {
+        // Failed
+        ERR("%s", "Failed To Create Socket");
+        return 1;
+    }
+
+    // Configure Socket
+    {
+        int enable = 1;
+        if (setsockopt(server_sock, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof (int)) != 0) {
+            // Failed
+            ERR("%s", "Failed To Configure Socket");
+            ret = 1;
+            goto close_server_socket;
+        }
+    }
 
     // Bind Socket
     struct sockaddr_in6 server_addr;
@@ -81,14 +100,16 @@ int piper_server_run(int port, int max_connections, piper_response_callback_t ca
     if (bind(server_sock, &server_addr, sizeof (server_addr)) != 0) {
         // Failed
         ERR("%s", "Failed To Bind");
-        return 1;
+        ret = 1;
+        goto close_server_socket;
     }
 
     // Listen
     if (listen(server_sock, max_connections) != 0) {
         // Failed
         ERR("%s", "Failed To Listen");
-        return 1;
+        ret = 1;
+        goto close_server_socket;
     }
 
     // Loop
@@ -100,7 +121,7 @@ int piper_server_run(int port, int max_connections, piper_response_callback_t ca
         uint16_t path_length;
         if (_safe_read(client_sock, &path_length, sizeof (path_length)) != 0) {
             // Bad Connection
-            goto close_socket;
+            goto close_client_socket;
         }
         path_length = le16toh(path_length);
 
@@ -125,13 +146,14 @@ int piper_server_run(int port, int max_connections, piper_response_callback_t ca
         // Cleanup
  free_request:
         free(request);
- close_socket:
+ close_client_socket:
         close(client_sock);
     }
 
     // Cleanup
+ close_server_socket:
     close(server_sock);
 
     // Return
-    return 0;
+    return ret;
 }

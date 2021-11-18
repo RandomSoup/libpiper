@@ -37,6 +37,10 @@ int _starts_with(const char *pre, const char *str) {
 
 // Parse URL
 int piper_parse_url(const char *url, piper_url *out) {
+    // Zero
+    out->host = NULL;
+    out->path = NULL;
+
     // Store Return Value
     int ret = 0;
 

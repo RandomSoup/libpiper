@@ -112,6 +112,11 @@ void piper_client_send(piper_url url, int handle_redirects, piper_response_callb
         }
         response_content_size = le64toh(response_content_size);
         response = malloc(sizeof (piper_response) + response_content_size + 1);
+        if (response == NULL) {
+            // Out Of Memory
+            _send_empty(CLIENT_OUT_OF_MEMORY_ERROR, callback);
+            goto free_request;
+        }
         response->content_type = response_content_type;
         response->content_length = response_content_size;
         if (_safe_read(sock, response->content, response->content_length) != 0) {

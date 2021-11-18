@@ -35,7 +35,7 @@ int main() {
     printf("Starting...\n");
     // Run
     if (piper_server_run(60, 10, callback) != 0) {
-        printf("Failed To Start Server\n");
+        fprintf(stderr, "Failed To Start Server\n");
         return EXIT_FAILURE;
     } else {
         return EXIT_SUCCESS;
