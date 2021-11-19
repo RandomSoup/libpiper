@@ -122,21 +122,21 @@ int piper_parse_url(const char *url, piper_url *out) {
     }
 
     // Return
-    (*out).host = strdup(url_stripped);
-    if ((*out).host == NULL) {
+    out->host = strdup(url_stripped);
+    if (out->host == NULL) {
         ret = 1;
         goto free_url_stripped;
     }
-    (*out).port = port != NULL ? atoi(port) : PIPER_DEFAULT_PORT;
+    out->port = port != NULL ? atoi(port) : PIPER_DEFAULT_PORT;
     if (path != NULL) {
-        if (asprintf(&(*out).path, "/%s", path) == -1) {
-            (*out).path = NULL;
+        if (asprintf(&out->path, "/%s", path) == -1) {
+            out->path = NULL;
         }
     } else {
-        (*out).path = strdup("");
+        out->path = strdup("");
     }
-    if ((*out).path == NULL) {
-        free((*out).host);
+    if (out->path == NULL) {
+        free(out->host);
         ret = 1;
         goto free_url_stripped;
     }
