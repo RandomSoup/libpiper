@@ -44,7 +44,7 @@ int piper_server_respond_str(int sock, uint8_t content_type, const char *format,
     }
 
     // Allocate Response
-    int response_str_length = strlen(response_str);
+    size_t response_str_length = strlen(response_str);
     piper_response *response = malloc(sizeof (piper_response) + response_str_length);
     if (response == NULL) {
         // Out Of Memory
