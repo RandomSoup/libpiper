@@ -13,7 +13,7 @@ static void internal_error(int sock) {
 }
 
 // Callback
-static int callback(piper_request *request, int sock) {
+static int callback(piper_request *request, int sock, __attribute__((unused)) void *user_data) {
     // Log
     printf("New Connection: %s\n", request->path);
     // Choose Behavior
@@ -42,7 +42,7 @@ static int callback(piper_request *request, int sock) {
 int main() {
     printf("Starting...\n");
     // Run
-    if (piper_server_run(60, 10, callback) != 0) {
+    if (piper_server_run(60, 10, callback, NULL) != 0) {
         fprintf(stderr, "Failed To Start Server\n");
         return EXIT_FAILURE;
     } else {

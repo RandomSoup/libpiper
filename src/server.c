@@ -69,7 +69,7 @@ free_response_str:
 }
 
 // Run Server
-int piper_server_run(int port, int max_connections, piper_response_callback_t callback) {
+int piper_server_run(int port, int max_connections, piper_request_callback_t callback, void *user_data) {
     // Store Return Value
     int ret = 0;
 
@@ -153,7 +153,7 @@ int piper_server_run(int port, int max_connections, piper_response_callback_t ca
         }
 
         // Callback
-        int callback_ret = (*callback)(request, client_sock);
+        int callback_ret = (*callback)(request, client_sock, user_data);
 
         // Cleanup
  free_request:

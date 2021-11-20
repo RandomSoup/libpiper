@@ -27,7 +27,7 @@ static int _ends_with(const char *suf, const char *str) {
     size_t str_len = strlen(str);
     return str_len >= suf_len && !strcmp(str + str_len - suf_len, suf);
 }
-static int callback(piper_request *request, int sock) {
+static int callback(piper_request *request, int sock, __attribute__((unused)) void *user_data) {
     // Log
     printf("Serving: %s\n", request->path);
 
@@ -137,7 +137,7 @@ static int callback(piper_request *request, int sock) {
 int main() {
     printf("Starting File Server...\n");
     // Run
-    if (piper_server_run(60, 10, callback) != 0) {
+    if (piper_server_run(60, 10, callback, NULL) != 0) {
         fprintf(stderr, "Failed To Start Server\n");
         return EXIT_FAILURE;
     } else {

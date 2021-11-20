@@ -27,7 +27,7 @@ int _safe_read(int sock, void *buf, size_t len) {
     size_t to_read = len;
     while (to_read > 0) {
         ssize_t x = read(sock, (void *) (((unsigned char *) buf) + (len - to_read)), to_read);
-        if (x == -1 && errno != EINTR) {
+        if (x == 0 || (x == -1 && errno != EINTR)) {
             return 1;
         }
         to_read -= x;
@@ -39,7 +39,7 @@ int _safe_write(int sock, void *buf, size_t len) {
     size_t to_write = len;
     while (to_write > 0) {
         ssize_t x = write(sock, (void *) (((unsigned char *) buf) + (len - to_write)), to_write);
-        if (x == -1 && errno != EINTR) {
+        if (x == 0 || (x == -1 && errno != EINTR)) {
             return 1;
         }
         to_write -= x;
@@ -176,24 +176,33 @@ int piper_resolve_url(piper_url old_url, const char *path, piper_url *new_url) {
         } else {
             // Relative
             size_t path_length = strlen(old_url.path);
-            size_t last_slash = 0;
+            size_t after_last_slash = 0;
             for (size_t j = 0; j < path_length; j++) {
-                size_t i = path_length - path_length - 1;
+                size_t i = path_length - j - 1;
                 if (old_url.path[i] == '/') {
-                    last_slash = i;
+                    after_last_slash = i + 1;
                     break;
                 }
             }
             // Create New Path
             size_t target_length = strlen(path);
-            size_t new_path_length = last_slash + target_length;
-            new_url->path = malloc(new_path_length + 1);
-            memcpy(new_url->path, old_url.path, last_slash);
+            size_t new_path_length = after_last_slash + target_length;
+            new_url->path = malloc(new_path_length + 1 /* NULL-Terminator */ + 1 /* Extra Preceding '/' If Needed */);
+            memcpy(new_url->path, old_url.path, after_last_slash);
             if (new_url->path == NULL) {
                 goto fail;
             }
-            memcpy(&new_url->path[last_slash], path, target_length);
+            memcpy(&new_url->path[after_last_slash], path, target_length);
             new_url->path[new_path_length] = '\0';
+            // Add Extra Preceding '/' If Needed
+            if (new_url->path[0] != '/' && new_url->path[0] != '\0') {
+                uint8_t full_path_length = new_path_length + 1 /* NULL-Terminator */;
+                for (uint8_t j = 0; j < full_path_length; j++) {
+                    uint8_t i = full_path_length - j - 1;
+                    new_url->path[i + 1] = new_url->path[i];
+                }
+                new_url->path[0] = '/';
+            }
         }
     }
 

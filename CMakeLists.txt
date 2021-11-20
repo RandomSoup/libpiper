@@ -26,3 +26,13 @@ target_compile_definitions(piper PRIVATE -DPIPER_INTERNAL)
 # Examples
 
 add_subdirectory(examples)
+
+# Testing
+
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+    option(BUILD_TESTING "Build Testing Code" TRUE)
+    if(BUILD_TESTING)
+        enable_testing()
+        add_subdirectory(tests)
+    endif()
+endif()

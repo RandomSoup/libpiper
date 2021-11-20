@@ -4,7 +4,7 @@
 #include <libpiper/client.h>
 
 // Callback
-static void callback(piper_response *response) {
+static void callback(piper_response *response, __attribute__((unused)) void *user_data) {
     printf("Content Type: %s (%#02x)\n", piper_content_type_to_string(response->content_type), response->content_type);
     switch (response->content_type) {
         case UTF8_TEXT:
@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
     piper_url url;
     if (piper_parse_url(argv[1], &url) == 0) {
         printf("Host: \"%s\", Port: %i, Path: \"%s\"\n", url.host, url.port, url.path);
-        piper_client_send(url, 1, callback);
+        piper_client_send(url, 1, callback, NULL);
         free(url.host);
         free(url.path);
         return EXIT_SUCCESS;
