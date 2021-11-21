@@ -148,6 +148,7 @@ void piper_client_send(piper_url url, int handle_redirects, piper_response_callb
                         _send_empty(CLIENT_OUT_OF_MEMORY_ERROR, callback, user_data);
                         goto free_request;
                     }
+                    response = new_response;
                 }
                 // Set Data
                 response->content[size - 1] = x;
