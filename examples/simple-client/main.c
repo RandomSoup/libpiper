@@ -27,7 +27,6 @@ int main(int argc, char *argv[]) {
     // Send Request
     piper_url url;
     if (piper_parse_url(argv[1], &url) == 0) {
-        printf("Host: \"%s\", Port: %i, Path: \"%s\"\n", url.host, url.port, url.path);
         piper_client_send(url, 1, callback, NULL);
         free(url.host);
         free(url.path);

@@ -112,19 +112,70 @@ void piper_client_send(piper_url url, int handle_redirects, piper_response_callb
             goto free_request;
         }
         response_content_size = le64toh(response_content_size);
-        response = malloc(sizeof (piper_response) + response_content_size + 1);
-        if (response == NULL) {
-            // Out Of Memory
-            _send_empty(CLIENT_OUT_OF_MEMORY_ERROR, callback, user_data);
-            goto free_request;
+        // Handle Dynamic Content
+        if (response_content_size == PIPER_DYNAMIC_CONTENT_LENGTH) {
+            // Dynamic Content Size
+            response = malloc(sizeof (piper_response));
+            if (response == NULL) {
+                // Out Of Memory
+                _send_empty(CLIENT_OUT_OF_MEMORY_ERROR, callback, user_data);
+                goto free_request;
+            }
+#define DYNAMIC_CONTENT_CHUNK_SIZE 4096
+            size_t size = 0;
+            size_t final_content_length = 0;
+            size_t real_size = 0;
+            // Read Data
+            while (1) {
+                // Read Byte
+                unsigned char x;
+                int read_ret = _safe_read(sock, &x, sizeof (x));
+                if (read_ret == SAFE_IO_EOF_ERROR) {
+                    x = (unsigned char) '\0'; // NULL-Terminator
+                } else if (read_ret != 0) {
+                    _send_empty(CLIENT_CONNECTION_ERROR, callback, user_data);
+                    goto free_response;
+                } else {
+                    final_content_length++;
+                }
+                size++;
+                // Resize If Needed
+                while (size > real_size) {
+                    real_size += DYNAMIC_CONTENT_CHUNK_SIZE;
+                    piper_response *new_response = realloc(response, sizeof (piper_response) + real_size);
+                    if (new_response == NULL) {
+                        // Out Of Memory
+                        _send_empty(CLIENT_OUT_OF_MEMORY_ERROR, callback, user_data);
+                        goto free_request;
+                    }
+                }
+                // Set Data
+                response->content[size - 1] = x;
+                // Check If Finished
+                if (read_ret == SAFE_IO_EOF_ERROR) {
+                    break;
+                }
+            }
+            // Set Metadata
+            response->content_length = final_content_length;
+        } else {
+            // Fixed Content Size
+            response = malloc(sizeof (piper_response) + response_content_size + 1 /* NULL-Terminator */);
+            if (response == NULL) {
+                // Out Of Memory
+                _send_empty(CLIENT_OUT_OF_MEMORY_ERROR, callback, user_data);
+                goto free_request;
+            }
+            response->content_length = response_content_size;
+            if (_safe_read(sock, response->content, response->content_length) != 0) {
+                _send_empty(CLIENT_CONNECTION_ERROR, callback, user_data);
+                goto free_response;
+            }
+            // Add NULL-Terminator
+            response->content[response->content_length] = '\0';
         }
+        // Content Type
         response->content_type = response_content_type;
-        response->content_length = response_content_size;
-        if (_safe_read(sock, response->content, response->content_length) != 0) {
-            _send_empty(CLIENT_CONNECTION_ERROR, callback, user_data);
-            goto free_response;
-        }
-        response->content[response->content_length] = '\0';
     }
 
     // Detect Redirect If Needed

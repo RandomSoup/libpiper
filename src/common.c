@@ -27,8 +27,10 @@ int _safe_read(int sock, void *buf, size_t len) {
     size_t to_read = len;
     while (to_read > 0) {
         ssize_t x = read(sock, (void *) (((unsigned char *) buf) + (len - to_read)), to_read);
-        if (x == 0 || (x == -1 && errno != EINTR)) {
-            return 1;
+        if (x == 0) {
+            return SAFE_IO_EOF_ERROR;
+        } else if (x == -1 && errno != EINTR) {
+            return SAFE_IO_ERROR;
         }
         to_read -= x;
     }
@@ -39,8 +41,10 @@ int _safe_write(int sock, void *buf, size_t len) {
     size_t to_write = len;
     while (to_write > 0) {
         ssize_t x = write(sock, (void *) (((unsigned char *) buf) + (len - to_write)), to_write);
-        if (x == 0 || (x == -1 && errno != EINTR)) {
-            return 1;
+        if (x == 0) {
+            return SAFE_IO_EOF_ERROR;
+        } else if (x == -1 && errno != EINTR) {
+            return SAFE_IO_ERROR;
         }
         to_write -= x;
     }

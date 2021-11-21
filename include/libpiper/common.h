@@ -48,6 +48,8 @@ enum {
 #undef DEFINE_ALL_PIPER_CONTENT_TYPES
 #endif
 
+#define PIPER_DYNAMIC_CONTENT_LENGTH 18446744073709551615ul // (2 ** 64) - 1
+
 typedef struct {
     uint8_t content_type;
     uint64_t content_length; // Little Endian
@@ -67,6 +69,8 @@ int piper_resolve_url(piper_url old_url, const char *path, piper_url *new_url);
 
 #include <stddef.h>
 
+#define SAFE_IO_ERROR 1
+#define SAFE_IO_EOF_ERROR 2
 int _safe_read(int sock, void *buf, size_t len);
 int _safe_write(int sock, void *buf, size_t len);
 
