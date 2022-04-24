@@ -4,11 +4,11 @@ project(examples)
 
 # Examples
 
-add_executable(simple-client simple-client/main.c)
-target_link_libraries(simple-client piper)
+add_executable(simple-client.o simple-client/main.c)
+target_link_libraries(simple-client.o piper)
 
-add_executable(simple-server simple-server/main.c)
-target_link_libraries(simple-server piper)
+add_executable(simple-server.o simple-server/main.c)
+target_link_libraries(simple-server.o piper)
 
-add_executable(file-server file-server/main.cpp)
-target_link_libraries(file-server piper)
+add_executable(file-server.o file-server/main.cpp)
+target_link_libraries(file-server.o piper)
